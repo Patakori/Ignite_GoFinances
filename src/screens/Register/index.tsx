@@ -84,6 +84,8 @@ export function Register(){
             amount: form.amount,
             type: transactionType,
             category: category.key,
+            date: new Date()
+            
         }
         
         try{
@@ -91,8 +93,8 @@ export function Register(){
             const currentData = data ? JSON.parse(data) : [];
 
             const dataFormatted = [
+                newTransaction,
                 ...currentData,
-                newTransaction
             ]
 
             await AsyncStorage.setItem('@gofinances:transactions', JSON.stringify(dataFormatted));

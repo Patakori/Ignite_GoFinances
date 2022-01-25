@@ -27,6 +27,7 @@ import {
 } from "./styles";
 
 import { useFocusEffect } from "@react-navigation/native";
+import { LastTransaction } from "../../components/Highlight/styles";
 
 
 export interface DataListProps extends TransactionCardProps {
@@ -35,6 +36,7 @@ export interface DataListProps extends TransactionCardProps {
 
 interface HighlightProps {
     amount: string;
+    lastTransaction: string;
 }
 
 interface HighlightData {
@@ -74,11 +76,11 @@ export function Dashboard(){
                 currency: 'BRL'
             })
 
-            const date = new Intl.DateTimeFormat('pt-BR', {
+            const date = new Date().toLocaleString('pt-BR',{
                 day: '2-digit',
                 month: '2-digit',
                 year: '2-digit'
-            }).format(item.date)
+            })
 
             return {
                 id: item.id,
@@ -91,6 +93,24 @@ export function Dashboard(){
         });
         setTransactions(transactionsFormatted);
 
+        function getLastTransactionDate(
+            collection: DataListProps[],
+            type: 'positive' | 'negative'
+        ){
+        const lastTransactionEntries = Math.max.apply(Math, collection
+            .filter(transaction => transaction.type === type)
+            .map(transaction => new Date (transaction.date).getTime()));
+
+            return new Date(lastTransactionEntries).toLocaleString('pt-BR',{
+                day: '2-digit',
+                month: 'long',
+            })         
+        }
+
+        const lastTransactionEntries = getLastTransactionDate(transactions, 'positive')
+        const lastTransactionExpensives = getLastTransactionDate(transactions, 'negative')
+        const totalInterval = `01 a ${lastTransactionExpensives}`
+
         const total = entriesTotal - expensiveTotal;
 
         setHighlightData({
@@ -98,19 +118,22 @@ export function Dashboard(){
                 amount: entriesTotal.toLocaleString('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                })
+                }),
+                lastTransaction : `última entrada dia ${lastTransactionEntries}`
             },
             expensives: {
                 amount: expensiveTotal.toLocaleString('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                })
+                }),
+                lastTransaction : `última saída dia ${lastTransactionExpensives}`
             },
             total: {
                 amount: total.toLocaleString('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
-                })
+                }),
+                lastTransaction : totalInterval
             }
         });
         setIsLoading(false);
@@ -156,9 +179,9 @@ export function Dashboard(){
                 </Header>
 
                 <HighlightCards>
-                    <HighlightCard type='up' title="Entradas" amount={highlightData.entries.amount} lastTransaction="Última saída dia 03 de abril"/>
-                    <HighlightCard type='down' title="Saídas" amount={highlightData.expensives.amount} lastTransaction="última saída dia 03 de abril"/>
-                    <HighlightCard type='total' title="Total" amount={highlightData.total.amount} lastTransaction="01 à 16 de abril"/>
+                    <HighlightCard type='up' title="Entradas" amount={highlightData.entries.amount} lastTransaction={highlightData.entries.lastTransaction}/>
+                    <HighlightCard type='down' title="Saídas" amount={highlightData.expensives.amount} lastTransaction={highlightData.expensives.lastTransaction}/>
+                    <HighlightCard type='total' title="Total" amount={highlightData.total.amount} lastTransaction={highlightData.total.lastTransaction}/>
                 </HighlightCards>
 
                 <Transaction>
@@ -176,6 +199,3 @@ export function Dashboard(){
         </Container>
     )
 }
-
-        
-    
